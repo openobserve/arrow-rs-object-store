@@ -264,7 +264,7 @@ impl ObjectStore for AmazonS3 {
         locations: BoxStream<'static, Result<Path>>,
     ) -> BoxStream<'static, Result<Path>> {
         let client = Arc::clone(&self.client);
-        if client.config.disable_stream_delete {
+        if client.config.disable_bulk_delete {
             // Issue parallel single-object DELETE /key requests. Required for
             // S3-compatible providers that do not implement the bulk
             // DeleteObjects API (e.g. Alibaba Cloud OSS).

@@ -182,7 +182,7 @@ pub struct AmazonS3Builder {
     /// Ignore tags
     disable_tagging: ConfigValue<bool>,
     /// Disable batching `delete_stream` into the S3 bulk DeleteObjects API
-    disable_stream_delete: ConfigValue<bool>,
+    disable_bulk_delete: ConfigValue<bool>,
     /// Encryption (See [`S3EncryptionConfigKey`])
     encryption_type: Option<ConfigValue<S3EncryptionType>>,
     encryption_kms_key_id: Option<String>,
@@ -440,9 +440,9 @@ pub enum AmazonS3ConfigKey {
     /// (e.g. Alibaba Cloud OSS).
     ///
     /// Supported keys:
-    /// - `aws_disable_stream_delete`
-    /// - `disable_stream_delete`
-    DisableStreamDelete,
+    /// - `aws_disable_bulk_delete`
+    /// - `disable_bulk_delete`
+    DisableBulkDelete,
 
     /// Enable Support for S3 Express One Zone
     ///
@@ -493,7 +493,7 @@ impl AsRef<str> for AmazonS3ConfigKey {
             Self::CopyIfNotExists => "aws_copy_if_not_exists",
             Self::ConditionalPut => "aws_conditional_put",
             Self::DisableTagging => "aws_disable_tagging",
-            Self::DisableStreamDelete => "aws_disable_stream_delete",
+            Self::DisableBulkDelete => "aws_disable_bulk_delete",
             Self::RequestPayer => "aws_request_payer",
             Self::Client(opt) => opt.as_ref(),
             Self::Encryption(opt) => opt.as_ref(),
@@ -541,7 +541,7 @@ impl FromStr for AmazonS3ConfigKey {
             "aws_copy_if_not_exists" | "copy_if_not_exists" => Ok(Self::CopyIfNotExists),
             "aws_conditional_put" | "conditional_put" => Ok(Self::ConditionalPut),
             "aws_disable_tagging" | "disable_tagging" => Ok(Self::DisableTagging),
-            "aws_disable_stream_delete" | "disable_stream_delete" => Ok(Self::DisableStreamDelete),
+            "aws_disable_bulk_delete" | "disable_bulk_delete" => Ok(Self::DisableBulkDelete),
             "aws_request_payer" | "request_payer" => Ok(Self::RequestPayer),
             // Backwards compatibility
             "aws_allow_http" => Ok(Self::Client(ClientConfigKey::AllowHttp)),
@@ -689,7 +689,7 @@ impl AmazonS3Builder {
             }
             AmazonS3ConfigKey::SkipSignature => self.skip_signature.parse(value),
             AmazonS3ConfigKey::DisableTagging => self.disable_tagging.parse(value),
-            AmazonS3ConfigKey::DisableStreamDelete => self.disable_stream_delete.parse(value),
+            AmazonS3ConfigKey::DisableBulkDelete => self.disable_bulk_delete.parse(value),
             AmazonS3ConfigKey::CopyIfNotExists => {
                 self.copy_if_not_exists = Some(ConfigValue::Deferred(value.into()))
             }
@@ -765,7 +765,7 @@ impl AmazonS3Builder {
             }
             AmazonS3ConfigKey::ConditionalPut => Some(self.conditional_put.to_string()),
             AmazonS3ConfigKey::DisableTagging => Some(self.disable_tagging.to_string()),
-            AmazonS3ConfigKey::DisableStreamDelete => Some(self.disable_stream_delete.to_string()),
+            AmazonS3ConfigKey::DisableBulkDelete => Some(self.disable_bulk_delete.to_string()),
             AmazonS3ConfigKey::RequestPayer => Some(self.request_payer.to_string()),
             AmazonS3ConfigKey::Encryption(key) => match key {
                 S3EncryptionConfigKey::ServerSideEncryption => {
@@ -1044,8 +1044,8 @@ impl AmazonS3Builder {
     /// batching into the bulk `DeleteObjects` API (`POST /?delete`). Use this
     /// for S3-compatible providers that do not implement `DeleteObjects`
     /// (e.g. Alibaba Cloud OSS).
-    pub fn with_disable_stream_delete(mut self, disable: bool) -> Self {
-        self.disable_stream_delete = disable.into();
+    pub fn with_disable_bulk_delete(mut self, disable: bool) -> Self {
+        self.disable_bulk_delete = disable.into();
         self
     }
 
@@ -1272,7 +1272,7 @@ impl AmazonS3Builder {
             sign_payload: !self.unsigned_payload.get()?,
             skip_signature: self.skip_signature.get()?,
             disable_tagging: self.disable_tagging.get()?,
-            disable_stream_delete: self.disable_stream_delete.get()?,
+            disable_bulk_delete: self.disable_bulk_delete.get()?,
             checksum,
             copy_if_not_exists,
             conditional_put: self.conditional_put.get()?,
